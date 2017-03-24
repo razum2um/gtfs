@@ -16,7 +16,7 @@ module GTFS
 
       def initialize(attrs={})
         attrs.each do |key, val|
-          instance_variable_set("@#{key}", val)
+          send("#{key}=", val) if respond_to?("#{key}=")
         end
       end
 
@@ -86,7 +86,6 @@ module GTFS
 
       def each(filename, options={}, feed=nil)
         raise InvalidSourceException.new("File does not exist: #{filename}") unless File.exists?(filename)
-        return if File.zero?(filename)
         File.open(filename, encoding: 'bom|utf-8') do |f|
           Rcsv.parse(f, nostrict: true, columns: {}, header: :use, row_as_hash: true, parse_empty_fields_as: :nil) do |row|
             model = self.new(row)

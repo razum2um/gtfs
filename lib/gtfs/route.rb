@@ -163,6 +163,19 @@ module GTFS
       VEHICLE_TYPES[self.route_type.to_s.to_sym]
     end
 
+    def gtfs_vehicle_type=(type)
+      self.route_type = case type.to_s
+        when /tram/i then '0'
+        when /metro/i then '1'
+        when /rail/i then '2'
+        when /bus/i then '3'
+        when /ferry/i then '4'
+        when /cablecar/i then '5'
+        when /gondola/i then '6'
+        when /funicular/i then '7'
+      end
+    end
+
     def id
       self.route_id
     end

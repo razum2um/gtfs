@@ -23,6 +23,7 @@ module GTFS
       GTFS::FeedInfo
     ]
     SOURCE_FILES = Hash[ENTITIES.map { |e| [e.filename, e] }]
+    SOURCE_NAMES = Hash[ENTITIES.map { |e| [e.name, e] }]
     DEFAULT_OPTIONS = {strict: true}
 
     attr_accessor :source, :archive, :path, :options
@@ -103,9 +104,14 @@ module GTFS
 
     def cache(filename, &block)
       # Read entities, cache by ID.
-      cls = SOURCE_FILES[filename]
-      if @cache[cls]
-        @cache[cls].values.each(&block)
+      if filename.is_a? Symbol
+        cls = SOURCE_NAMES[filename]
+        filename = cls.filename
+      else
+        cls = SOURCE_FILES[filename]
+      end
+      if !@cache[cls].empty?
+        @cache[cls].each_value(&block)
       else
         @cache[cls] = {}
         cls.each(file_path(filename), options, self) do |model|
@@ -142,10 +148,17 @@ module GTFS
       end
 
       # feed.dump_<entity>
-      define_method "dump_#{cls.name}".to_sym do |&block|
+      define_method "dump_#{cls.name}".to_sym do |models=nil, &block|
         CSV.open(File.join(source, cls.filename), 'wb') do |f|
           f << cls.attrs
-          self.cache(cls.filename) { |model| f << model.to_csv }
+          if models.respond_to?(:each)
+            models.each do |model|
+              @cache[cls][model.id] = model
+              f << model.to_csv
+            end
+          else
+            self.cache(cls.filename) { |model| f << model.to_csv }
+          end
         end
       end
     end
