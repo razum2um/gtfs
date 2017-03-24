@@ -1,6 +1,7 @@
 require 'tmpdir'
 require 'fileutils'
 require 'zip'
+require 'csv'
 
 module GTFS
 
@@ -118,6 +119,11 @@ module GTFS
 
     # Define model access methods, e.g. feed.each_stop
     ENTITIES.each do |cls|
+      # feed.<entities>=
+      define_method "#{cls.name}=".to_sym do |models|
+        models.each { |model| @cache[cls][model.id] = model }
+      end
+
       # feed.<entities>
       define_method cls.name.to_sym do
         ret = []
@@ -133,6 +139,14 @@ module GTFS
       # feed.each_<entity>
       define_method "each_#{cls.singular_name}".to_sym do |&block|
         cls.each(file_path(cls.filename), options, self, &block)
+      end
+
+      # feed.dump_<entity>
+      define_method "dump_#{cls.name}".to_sym do |&block|
+        CSV.open(File.join(source, cls.filename), 'wb') do |f|
+          f << cls.attrs
+          self.cache(cls.filename) { |model| f << model.to_csv }
+        end
       end
     end
 
