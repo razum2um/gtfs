@@ -30,7 +30,7 @@ module GTFS
     def initialize(source, opts={})
       raise 'Source cannot be nil' if source.nil?
       # Cache
-      @cache = {}
+      @cache = Hash.new { |h,k| h[k] = {} }
       # Parents/children
       @parents = Hash.new { |h,k| h[k] = Set.new }
       @children = Hash.new { |h,k| h[k] = Set.new }
@@ -328,7 +328,7 @@ module GTFS
       elsif URLSource.exists?(source)
         URLSource.new(source, opts)
       else
-        raise 'No handler for source'
+        EmptySource.new(source, opts)
       end
     end
 
