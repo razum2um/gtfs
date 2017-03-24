@@ -14,7 +14,7 @@ module GTFS
         !self.class.required_attrs.any?{|f| self.send(f.to_sym).nil?}
       end
 
-      def initialize(attrs)
+      def initialize(attrs={})
         attrs.each do |key, val|
           instance_variable_set("@#{key}", val)
         end
@@ -26,6 +26,13 @@ module GTFS
       def name
       end
 
+      def to_csv
+        self.class.attrs.map { |a| instance_variable_get "@#{a}" }
+      end
+
+      def to_s
+        inspect
+      end
     end
 
     module ClassMethods
