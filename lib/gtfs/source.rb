@@ -331,6 +331,11 @@ module GTFS
       end
     end
 
+    def recreate_archive(filename)
+      FileUtils.rm(filename) if File.exists?(filename)
+      create_archive(filename)
+    end
+
     def self.build(source, opts={})
       raise 'source required' unless source
       source = source.to_s
